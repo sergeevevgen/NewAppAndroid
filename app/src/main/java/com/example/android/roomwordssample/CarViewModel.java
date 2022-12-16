@@ -25,7 +25,7 @@ public class CarViewModel extends AndroidViewModel {
     // - We can put an observer on the data (instead of polling for changes) and only update the
     //   the UI when the data actually changes.
     // - Repository is completely separated from the UI through the ViewModel.
-    private final LiveData<List<Car>> mAllCars;
+    private final List<Car> mAllCars;
 
     public CarViewModel(@NonNull Application application) {
         super(application);
@@ -33,7 +33,7 @@ public class CarViewModel extends AndroidViewModel {
         mAllCars = mRepository.getAllCars();
     }
 
-    public LiveData<List<Car>> getAllCars() {
+    public List<Car> getAllCars() {
         return mAllCars;
     }
 
@@ -41,7 +41,7 @@ public class CarViewModel extends AndroidViewModel {
         return mRepository.getSelectedCars();
     }
 
-    public LiveData<List<Car>> getFilteredCars(String str) {
+    public List<Car> getFilteredCars(String str) {
         return mRepository.getFilteredCars(str);
     }
 

@@ -1,5 +1,6 @@
 package com.example.android.roomwordssample;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,45 +26,38 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class CarListAdapter extends ListAdapter<Car, CarListAdapter.CarViewHolder> {
-    private OnItemLongClickListener listener;
-    private OnCheckedClickListener listener2;
+public class CarListAdapter extends RecyclerView.Adapter<CarListAdapter.CarViewHolder> {
 
-    private static final DiffUtil.ItemCallback<Car> DIFF_CALLBACK = new DiffUtil.ItemCallback<Car>() {
-        @Override
-        public boolean areItemsTheSame(@NonNull Car oldItem, @NonNull Car newItem) {
-            return oldItem.getId() == newItem.getId();
-        }
+    private Context context;
+    private ArrayList<Car> cars;
+    private ArrayList<Car> checked_cars;
 
-        @Override
-        public boolean areContentsTheSame(@NonNull Car oldItem, @NonNull Car newItem) {
-            return oldItem.getBrand().equals(newItem.getBrand()) && oldItem.getModel().equals(newItem.getModel())
-                    && oldItem.getIsSelected().equals(newItem.getIsSelected());
-        }
-    };
-
-    public CarListAdapter() {
-        super(DIFF_CALLBACK);
+    public CarListAdapter(Context c, ArrayList<Car> cars) {
+        this.context = c;
+        this.cars = cars;
     }
 
     @NonNull
     @Override
-    public CarViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public CarListAdapter.CarViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_item, parent, false);
         return new CarViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(CarViewHolder holder, int position) {
-        Car current = getItem(position);
-        holder.bind(current);
+    public void onBindViewHolder(CarListAdapter.CarViewHolder holder, int position) {
+        Car car = cars.get(position);
+        holder.brandItemView.setText(car.getBrand());
+        holder.modelItemView.setText(car.getModel());
+        holder.checkBox.setChecked(car.getIsSelected());
     }
 
-    public Car getCarAt(int position) {
-        return getItem(position);
+    @Override
+    public int getItemCount() {
+        return cars.size();
     }
 
-    class CarViewHolder extends RecyclerView.ViewHolder {
+    class CarViewHolder extends RecyclerView.ViewHolder{
         private final TextView brandItemView;
         private final TextView modelItemView;
         private final CheckBox checkBox;
@@ -74,45 +68,15 @@ public class CarListAdapter extends ListAdapter<Car, CarListAdapter.CarViewHolde
             modelItemView = itemView.findViewById(R.id.modelTextView);
             checkBox = itemView.findViewById(R.id.checkbox_check);
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            checkBox.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public boolean onLongClick(View v) {
-                    int position = getAdapterPosition();
-                    if (listener != null && position != RecyclerView.NO_POSITION)
-                        listener.onItemLongClicked(getItem(position));
-                    return true;
-                }
-            });
-            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    int position = getAdapterPosition();
-                    if (listener2 != null && position != RecyclerView.NO_POSITION)
-                        listener2.OnCheckedClicked(isChecked, getItem(position));
+                public void onClick(View v) {
+                    boolean isChecked = ((CheckBox) v).isChecked();
+
+                    cars.get(getAdapterPosition()).setSelected(isChecked);
+                    notifyItemChanged(getAdapterPosition());
                 }
             });
         }
-
-        public void bind(Car car) {
-            brandItemView.setText(car.getBrand());
-            modelItemView.setText(car.getModel());
-            checkBox.setChecked(car.getIsSelected());
-        }
-    }
-
-    public interface OnItemLongClickListener {
-        boolean onItemLongClicked(Car car);
-    }
-
-    public void setOnItemLongClickListener(OnItemLongClickListener listener) {
-        this.listener = listener;
-    }
-
-    public interface OnCheckedClickListener {
-        void OnCheckedClicked(boolean isChecked, Car car);
-    }
-
-    public void setOnCheckedClickListener(OnCheckedClickListener listener) {
-        this.listener2 = listener;
     }
 }

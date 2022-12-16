@@ -26,10 +26,10 @@ public interface CarDao {
     // data has changed. Since we are getting all the contents of the database,
     // we are notified whenever any of the database contents have changed.
     @Query("SELECT * FROM car_table ORDER BY brand ASC")
-    LiveData<List<Car>> getAlphabetizedByBrands();
+    List<Car> getAlphabetizedByBrands();
 
     @Query("SELECT * FROM car_table WHERE brand LIKE '%' || :query || '%' OR model LIKE '%' || :query || '%' ORDER BY brand ASC")
-    LiveData<List<Car>> getFilteredCars(String query);
+    List<Car> getFilteredCars(String query);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(Car car);
@@ -44,7 +44,7 @@ public interface CarDao {
     void delete(Car car);
 
     @Query("SELECT * FROM car_table WHERE brand = :brand AND model = :model")
-    LiveData<Car> getByBrandAndModel(String brand, String model);
+    Car getByBrandAndModel(String brand, String model);
 
     @Query("SELECT * FROM car_table WHERE isSelected = :select")
     List<Car> getSelected(Boolean select);

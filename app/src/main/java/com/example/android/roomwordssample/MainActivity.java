@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -25,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     public static final int NEW_CAR_ACTIVITY_REQUEST_CODE = 1;
     public static final int EDIT_CAR_ACTIVITY_REQUEST_CODE = 2;
-    private final CarListAdapter adapter = new CarListAdapter();
+    private final CarListAdapter adapter;
     private CarViewModel mCarViewModel;
 
     @Override
@@ -34,10 +35,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         setContentView(R.layout.activity_main);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerview);
-        recyclerView.setAdapter(adapter);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
 
+        recyclerView.setAdapter(adapter);
         // Get a new or existing ViewModel from the ViewModelProvider.
         mCarViewModel = new ViewModelProvider(this).get(CarViewModel.class);
 
@@ -46,26 +48,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         // in the foreground.
         // Update the cached copy of the words in the adapter.
         mCarViewModel.getAllCars().observe(this, adapter::submitList);
-
-        FloatingActionButton fab = findViewById(R.id.button_add_car);
-        fab.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, AddEditCarActivity.class);
-            startActivityForResult(intent, NEW_CAR_ACTIVITY_REQUEST_CODE);
-        });
-
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
-                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                mCarViewModel.delete(adapter.getCarAt(viewHolder.getAdapterPosition()));
-                Toast.makeText(MainActivity.this, "Car deleted", Toast.LENGTH_SHORT).show();
-            }
-        }).attachToRecyclerView(recyclerView);
 
         adapter.setOnItemLongClickListener(new CarListAdapter.OnItemLongClickListener() {
             @Override
@@ -86,6 +68,27 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 mCarViewModel.update(car);
             }
         });
+
+        FloatingActionButton fab = findViewById(R.id.button_add_car);
+        fab.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, AddEditCarActivity.class);
+            startActivityForResult(intent, NEW_CAR_ACTIVITY_REQUEST_CODE);
+        });
+
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+                mCarViewModel.delete(adapter.getCarAt(viewHolder.getAdapterPosition()));
+
+                Toast.makeText(MainActivity.this, "Car deleted", Toast.LENGTH_SHORT).show();
+            }
+        }).attachToRecyclerView(recyclerView);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -142,10 +145,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 Toast.makeText(this, "All cars deleted", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.delete_all_checked_cars:
-                mCarViewModel.deleteAllCheckedCars();
+                    mCarViewModel.deleteAllCheckedCars();
                 Toast.makeText(this, "All checked cars deleted", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.show_all_checked:
+
                 List<Car> list = null;
                 try {
                     list = mCarViewModel.getSelectedCars();
@@ -184,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     private void searchIntoModel(String s) {
         String str = '%' + s + '%';
-
         mCarViewModel.getFilteredCars(str).observe(this, adapter::submitList);
     }
 }

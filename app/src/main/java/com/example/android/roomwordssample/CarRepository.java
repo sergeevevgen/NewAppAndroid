@@ -18,7 +18,7 @@ import java.util.concurrent.Future;
 class CarRepository {
 
     private final CarDao mCarDao;
-    private final LiveData<List<Car>> mAllCars;
+    private final List<Car> mAllCars;
 
     // Note that in order to unit test the WordRepository, you have to remove the Application
     // dependency. This adds complexity and much more code, and this sample is not about testing.
@@ -32,11 +32,11 @@ class CarRepository {
 
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
-    public LiveData<List<Car>> getAllCars() {
+    public List<Car> getAllCars() {
         return mAllCars;
     }
 
-    public LiveData<List<Car>> getFilteredCars(String str) { return mCarDao.getFilteredCars(str); }
+    public List<Car> getFilteredCars(String str) { return mCarDao.getFilteredCars(str); }
 
     // You must call this on a non-UI thread or your app will throw an exception. Room ensures
     // that you're not doing any long running operations on the main thread, blocking the UI.
@@ -78,7 +78,7 @@ class CarRepository {
         return list.get();
     }
 
-    LiveData<Car> getByBrandAndModel() {
+    Car getByBrandAndModel() {
         return mCarDao.getByBrandAndModel("VW", "Polo");
     }
 }
