@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView"/>
+    <item
+        android:id="@+id/sort"
+        android:icon="@drawable/ic_sort"
+        android:title="@string/sort"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/sort_by_name"
+                android:title="@string/sort_by_brand" />
+            <item
+                android:id="@+id/sort_by_model"
+                android:title="@string/sort_by_model" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/delete_all_cars"
+        android:title="@string/delete_all_cars"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/delete_all_checked_cars"
+        android:title="@string/delete_all_checked_cars"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/show_all_checked"
+        android:title="@string/show_all_checked"
+        app:showAsAction="never"/>
+</menu>
