@@ -13,21 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License. -->
 
 <resources>
-    <string name="app_name">RoomWordsSample</string>
-    <string name="action_settings">Settings</string>
-    <string name="hint_brand">Brand…</string>
-    <string name="hint_model">Model…</string>
-    <string name="button_save">Save</string>
-    <string name="empty_not_saved">Word not saved because it is empty.</string>
-    <string name="add_word">Add word</string>
-    <string name="save">Save</string>
-    <string name="delete_all_cars">Delete all cars</string>
+    <string name="app_name">Моё приложение</string>
+    <string name="action_settings">Настройки</string>
+    <string name="hint_brand">Марка</string>
+    <string name="hint_model">Модель</string>
+    <string name="button_save">Сохранить</string>
+    <string name="empty_not_saved">Авто не сохранено, потому что оно пусто</string>
+    <string name="add_word">Добавить авто</string>
+    <string name="save">Сохранить</string>
+    <string name="delete_all_cars">Удалить все авто</string>
     <string name="search">Search</string>
-    <string name="sort">Sort</string>
-    <string name="sort_by_brand">Sort by brand</string>
-    <string name="sort_by_model">Sort by model</string>
-    <string name="delete_all_checked_cars">Delete all checked cars</string>
-    <string name="show_all_checked">Show all checked</string>
+    <string name="sort">Сортировать</string>
+    <string name="sort_by_brand">Сортировать по марке</string>
+    <string name="sort_by_model">Сортировать по модели</string>
+    <string name="delete_all_checked_cars">Удалить выделенные авто</string>
+    <string name="show_all_checked">Показать все выделенные</string>
     <string name="json">Использовать json</string>
     <string name="use_db">Использовать БД</string>
     <!-- Settings Activity Title -->

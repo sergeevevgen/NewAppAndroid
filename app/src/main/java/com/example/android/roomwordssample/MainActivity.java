@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        setTitle("RoomDB");
         recyclerView = findViewById(R.id.recyclerview);
 
         // Get a new or existing ViewModel from the ViewModelProvider.
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 mCarViewModel.list_cars.remove(car);
                 refresh();
 
-                Toast.makeText(MainActivity.this, "Car deleted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Авто удалено", Toast.LENGTH_SHORT).show();
             }
         }).attachToRecyclerView(recyclerView);
     }
@@ -80,12 +80,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             mCarViewModel.list_cars.add(car);
             mCarViewModel.insert(car);
             refresh();
-            Toast.makeText(getApplicationContext(), "Car saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Авто сохранено", Toast.LENGTH_SHORT).show();
         } else if (requestCode == EDIT_CAR_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
             long id = data.getLongExtra(AddEditCarActivity.EXTRA_ID, -1);
             int position = data.getIntExtra(AddEditCarActivity.EXTRA_POSITION, -1);
             if (id == -1 || position == -1) {
-                Toast.makeText(this, "Car can't be updated", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Авто не может быть обновлено", Toast.LENGTH_SHORT).show();
                 return;
             }
             String brand = data.getStringExtra(AddEditCarActivity.EXTRA_BRAND);
@@ -96,11 +96,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             mCarViewModel.update(car);
             mCarViewModel.list_cars.set(position, car);
             refresh();
-            Toast.makeText(getApplicationContext(), "Car updated", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Авто обновлено", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(
                     getApplicationContext(),
-                    "You closed it",
+                    "Вы закрыли её",
                     Toast.LENGTH_LONG).show();
         }
     }
@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         MenuItem item = menu.findItem(R.id.search);
         SearchView searchView = (SearchView) item.getActionView();
         searchView.setMaxWidth(Integer.MAX_VALUE);
-        searchView.setQueryHint("Search here");
+        searchView.setQueryHint("Искать здесь");
         searchView.setSubmitButtonEnabled(false);
         searchView.setOnQueryTextListener(this);
         return true;
@@ -126,11 +126,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             case R.id.delete_all_cars:
                 mCarViewModel.deleteAllCars();
                 refresh();
-                Toast.makeText(this, "All cars deleted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Все авто удалены", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.delete_all_checked_cars:
                 deleteChecked();
-                Toast.makeText(this, "All checked cars deleted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Все выделенные авто удалены", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.show_all_checked:
 
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 StringBuilder str = new StringBuilder();
                 assert list != null;
                 if (list.size() == 0) {
-                    Toast.makeText(this, "Nothing is checked", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Ничто не выделено", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     for (Car car : list) {
@@ -148,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 }
                 return true;
             case R.id.use_db:
+                setTitle("RoomDB");
                 mCarViewModel.setCONSTANT_SOURCE(0);
                 try {
                     getData();
@@ -157,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 restore();
                 return true;
             case R.id.use_json:
+                setTitle("JSON");
                 mCarViewModel.setCONSTANT_SOURCE(1);
                 try {
                     getData();
