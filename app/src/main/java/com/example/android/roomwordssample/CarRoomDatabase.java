@@ -59,11 +59,11 @@ abstract class CarRoomDatabase extends RoomDatabase {
                 CarDao dao = INSTANCE.carDao();
                 dao.deleteAll();
 
-                Car data = new Car("VW", "Polo", true);
+                Car data = new Car("VW", "Polo");
                 dao.insert(data);
-                data = new Car("Hyundai", "Solaris", true);
+                data = new Car("Hyundai", "Solaris");
                 dao.insert(data);
-                data = new Car("Lada", "Granta", false);
+                data = new Car("Lada", "Granta");
                 dao.insert(data);
             });
         }

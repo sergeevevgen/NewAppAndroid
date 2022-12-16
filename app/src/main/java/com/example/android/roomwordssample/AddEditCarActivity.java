@@ -23,6 +23,7 @@ public class AddEditCarActivity extends AppCompatActivity {
     public static final String EXTRA_BRAND = "com.example.android.brand";
     public static final String EXTRA_MODEL = "com.example.android.model";
     public static final String EXTRA_ID = "com.example.android.id";
+    public static final String EXTRA_POSITION = "com.example.android.position";
 
     private EditText mEditBrandView;
     private EditText mEditModelView;
@@ -37,7 +38,7 @@ public class AddEditCarActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        if (intent.hasExtra(EXTRA_ID)) {
+        if (intent.hasExtra(EXTRA_ID) && intent.hasExtra(EXTRA_POSITION)) {
             setTitle("Изменить Авто");
             mEditBrandView.setText(intent.getStringExtra(EXTRA_BRAND));
             mEditModelView.setText(intent.getStringExtra(EXTRA_MODEL));
@@ -61,8 +62,10 @@ public class AddEditCarActivity extends AppCompatActivity {
         replyIntent.putExtra(EXTRA_MODEL, model);
 
         long id = getIntent().getLongExtra(EXTRA_ID, -1);
-        if (id != -1) {
+        int position = getIntent().getIntExtra(EXTRA_POSITION, -1);
+        if (id != -1 && position != -1) {
             replyIntent.putExtra(EXTRA_ID, id);
+            replyIntent.putExtra(EXTRA_POSITION, position);
         }
         setResult(RESULT_OK, replyIntent);
         finish();

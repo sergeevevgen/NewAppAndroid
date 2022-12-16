@@ -1,17 +1,15 @@
 package com.example.android.roomwordssample;
 
 import android.app.Application;
-import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Transformations;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * View Model to keep a reference to the word repository and
@@ -25,41 +23,80 @@ public class CarViewModel extends AndroidViewModel {
     // - We can put an observer on the data (instead of polling for changes) and only update the
     //   the UI when the data actually changes.
     // - Repository is completely separated from the UI through the ViewModel.
-    private final List<Car> mAllCars;
-
+    public ArrayList<Car> list_cars;
+    private int CONSTANT_SOURCE = 0;
     public CarViewModel(@NonNull Application application) {
         super(application);
         mRepository = new CarRepository(application);
-        mAllCars = mRepository.getAllCars();
+        list_cars = new ArrayList<>();
     }
 
-    public List<Car> getAllCars() {
-        return mAllCars;
+    public void setCONSTANT_SOURCE(int k) {
+        if ((k == 1 && CONSTANT_SOURCE == 1) || (k == 0 && CONSTANT_SOURCE == 1))
+        {
+            saveAllCarsForSwap();
+        }
+
+        CONSTANT_SOURCE = k;
     }
 
-    public List<Car> getSelectedCars() throws ExecutionException, InterruptedException {
-        return mRepository.getSelectedCars();
+    public ArrayList<Car> getAllCars() throws ExecutionException, InterruptedException {
+        if (CONSTANT_SOURCE == 0) {
+            list_cars = (ArrayList<Car>) mRepository.getAllCars();
+        }
+        else {
+            Future<List<Car>> list = JSONHelper.jsoneWriteExecutor.submit(new Callable<List<Car>>() {
+                @Override
+                public List<Car> call() {
+                    return JSONHelper.importFromJSON(getApplication());
+                }
+            });
+            ArrayList<Car> tmp = (ArrayList<Car>)list.get();
+            if (tmp == null) {
+                list_cars = new ArrayList<>();
+            }
+            else
+                list_cars = tmp;
+        }
+        return list_cars;
     }
 
-    public List<Car> getFilteredCars(String str) {
-        return mRepository.getFilteredCars(str);
+    public void saveAllCars() {
+        if (CONSTANT_SOURCE == 1) {
+            JSONHelper.jsoneWriteExecutor.execute(() -> {
+                JSONHelper.exportToJSON(getApplication(), list_cars);
+            });
+        }
     }
 
-    public void deleteAllCheckedCars() { mRepository.deleteAllCheckedCars(); }
+    public void saveAllCarsForSwap() {
+        JSONHelper.jsoneWriteExecutor.execute(() -> {
+            JSONHelper.exportToJSON(getApplication(), list_cars);
+        });
+    }
 
     public void insert(Car car) {
-        mRepository.insert(car);
+        if (CONSTANT_SOURCE == 0) {
+            mRepository.insert(car);
+        }
     }
 
     public void delete(Car car) {
-        mRepository.delete(car);
+        if (CONSTANT_SOURCE == 0) {
+            mRepository.delete(car);
+        }
     }
 
     public void update(Car car) {
-        mRepository.update(car);
+        if (CONSTANT_SOURCE == 0) {
+            mRepository.update(car);
+        }
     }
 
     public void deleteAllCars() {
-        mRepository.deleteAllCars();
+        if (CONSTANT_SOURCE == 0) {
+            mRepository.deleteAllCars();
+        }
+        list_cars.clear();
     }
 }

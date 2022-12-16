@@ -9,16 +9,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class JSONHelper {
 
     private static final String FILE_NAME = "data.json";
+    private static final int NUMBER_OF_THREADS = 4;
+    static final ExecutorService jsoneWriteExecutor =
+            Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
     static boolean exportToJSON(Context context, List<Car> dataList) {
 
         Gson gson = new Gson();
         DataItems dataItems = new DataItems();
-        dataItems.setUsers(dataList);
+        dataItems.setCars(dataList);
         String jsonString = gson.toJson(dataItems);
 
         try(FileOutputStream fileOutputStream =
@@ -54,7 +59,7 @@ public class JSONHelper {
         List<Car> getCars() {
             return cars;
         }
-        void setUsers(List<Car> cars) {
+        void setCars(List<Car> cars) {
             this.cars = cars;
         }
     }

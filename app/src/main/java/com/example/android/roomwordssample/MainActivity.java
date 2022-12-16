@@ -26,48 +26,25 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     public static final int NEW_CAR_ACTIVITY_REQUEST_CODE = 1;
     public static final int EDIT_CAR_ACTIVITY_REQUEST_CODE = 2;
-    private final CarListAdapter adapter;
+    private CarListAdapter adapter;
     private CarViewModel mCarViewModel;
-
+    RecyclerView recyclerView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        RecyclerView recyclerView = findViewById(R.id.recyclerview);
+        recyclerView = findViewById(R.id.recyclerview);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setHasFixedSize(true);
-
-        recyclerView.setAdapter(adapter);
         // Get a new or existing ViewModel from the ViewModelProvider.
         mCarViewModel = new ViewModelProvider(this).get(CarViewModel.class);
-
-        // Add an observer on the LiveData returned by getAlphabetizedWords.
-        // The onChanged() method fires when the observed data changes and the activity is
-        // in the foreground.
-        // Update the cached copy of the words in the adapter.
-        mCarViewModel.getAllCars().observe(this, adapter::submitList);
-
-        adapter.setOnItemLongClickListener(new CarListAdapter.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClicked(Car car) {
-                Intent intent = new Intent(MainActivity.this, AddEditCarActivity.class);
-                intent.putExtra(AddEditCarActivity.EXTRA_ID, car.getId());
-                intent.putExtra(AddEditCarActivity.EXTRA_BRAND, car.getBrand());
-                intent.putExtra(AddEditCarActivity.EXTRA_MODEL, car.getModel());
-                startActivityForResult(intent, EDIT_CAR_ACTIVITY_REQUEST_CODE);
-                return true;
-            }
-        });
-
-        adapter.setOnCheckedClickListener(new CarListAdapter.OnCheckedClickListener() {
-            @Override
-            public void OnCheckedClicked(boolean isChecked, Car car) {
-                car.setSelected(isChecked);
-                mCarViewModel.update(car);
-            }
-        });
+        try {
+            getData();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        setRecyclerView();
+        refresh();
 
         FloatingActionButton fab = findViewById(R.id.button_add_car);
         fab.setOnClickListener(view -> {
@@ -84,7 +61,10 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                mCarViewModel.delete(adapter.getCarAt(viewHolder.getAdapterPosition()));
+                Car car = mCarViewModel.list_cars.get(viewHolder.getAdapterPosition());
+                mCarViewModel.delete(car);
+                mCarViewModel.list_cars.remove(car);
+                refresh();
 
                 Toast.makeText(MainActivity.this, "Car deleted", Toast.LENGTH_SHORT).show();
             }
@@ -96,23 +76,26 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         if (requestCode == NEW_CAR_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
             Car car = new Car(data.getStringExtra(AddEditCarActivity.EXTRA_BRAND),
-                    data.getStringExtra(AddEditCarActivity.EXTRA_MODEL), false);
+                    data.getStringExtra(AddEditCarActivity.EXTRA_MODEL));
+            mCarViewModel.list_cars.add(car);
             mCarViewModel.insert(car);
+            refresh();
             Toast.makeText(getApplicationContext(), "Car saved", Toast.LENGTH_SHORT).show();
         } else if (requestCode == EDIT_CAR_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
             long id = data.getLongExtra(AddEditCarActivity.EXTRA_ID, -1);
-
-            if (id == -1) {
+            int position = data.getIntExtra(AddEditCarActivity.EXTRA_POSITION, -1);
+            if (id == -1 || position == -1) {
                 Toast.makeText(this, "Car can't be updated", Toast.LENGTH_SHORT).show();
                 return;
             }
             String brand = data.getStringExtra(AddEditCarActivity.EXTRA_BRAND);
             String model = data.getStringExtra(AddEditCarActivity.EXTRA_MODEL);
 
-            Car car = new Car(brand, model, false);
+            Car car = new Car(brand, model);
             car.setId(id);
             mCarViewModel.update(car);
-
+            mCarViewModel.list_cars.set(position, car);
+            refresh();
             Toast.makeText(getApplicationContext(), "Car updated", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(
@@ -142,20 +125,16 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         switch (item.getItemId()) {
             case R.id.delete_all_cars:
                 mCarViewModel.deleteAllCars();
+                refresh();
                 Toast.makeText(this, "All cars deleted", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.delete_all_checked_cars:
-                    mCarViewModel.deleteAllCheckedCars();
+                deleteChecked();
                 Toast.makeText(this, "All checked cars deleted", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.show_all_checked:
 
-                List<Car> list = null;
-                try {
-                    list = mCarViewModel.getSelectedCars();
-                } catch (ExecutionException | InterruptedException e) {
-                    e.printStackTrace();
-                }
+                ArrayList<Car> list = adapter.getChecked_cars();
                 StringBuilder str = new StringBuilder();
                 assert list != null;
                 if (list.size() == 0) {
@@ -167,6 +146,24 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                     }
                     Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
                 }
+                return true;
+            case R.id.use_db:
+                mCarViewModel.setCONSTANT_SOURCE(0);
+                try {
+                    getData();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+                restore();
+                return true;
+            case R.id.use_json:
+                mCarViewModel.setCONSTANT_SOURCE(1);
+                try {
+                    getData();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+                restore();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -180,14 +177,74 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     @Override
     public boolean onQueryTextChange(String s) {
-        if (s != null) {
-            searchIntoModel(s);
-        }
+//        if (s != null) {
+//            searchIntoModel(s);
+//        }
         return true;
     }
 
-    private void searchIntoModel(String s) {
-        String str = '%' + s + '%';
-        mCarViewModel.getFilteredCars(str).observe(this, adapter::submitList);
+//    private void searchIntoModel(String s) {
+//        String str = '%' + s + '%';
+//        mCarViewModel.getFilteredCars(str).observe(this, adapter::submitList);
+//    }
+
+    private void getData() throws ExecutionException, InterruptedException {
+        mCarViewModel.getAllCars();
+    }
+
+    private void deleteChecked() {
+        ArrayList<Integer> list_2 = adapter.getChecked_positions();
+        for (int i = 0; i < list_2.size(); i++) {
+            Car car = mCarViewModel.list_cars.get(list_2.get(i));
+            mCarViewModel.delete(car);
+            mCarViewModel.list_cars.remove((int) list_2.get(i));
+        }
+        restore();
+    }
+
+    private void refresh() {
+        adapter.notifyDataSetChanged();
+    }
+
+    private void restore() {
+        adapter = new CarListAdapter(this, mCarViewModel.list_cars);
+        recyclerView.setAdapter(adapter);
+        adapter.setOnItemLongClickListener(new CarListAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClicked(Car car, int position) {
+                Intent intent = new Intent(MainActivity.this, AddEditCarActivity.class);
+                intent.putExtra(AddEditCarActivity.EXTRA_ID, car.getId());
+                intent.putExtra(AddEditCarActivity.EXTRA_BRAND, car.getBrand());
+                intent.putExtra(AddEditCarActivity.EXTRA_MODEL, car.getModel());
+                intent.putExtra(AddEditCarActivity.EXTRA_POSITION, position);
+                startActivityForResult(intent, EDIT_CAR_ACTIVITY_REQUEST_CODE);
+                return true;
+            }
+        });
+    }
+
+    private void setRecyclerView() {
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new CarListAdapter(this, mCarViewModel.list_cars);
+        recyclerView.setAdapter(adapter);
+        adapter.setOnItemLongClickListener(new CarListAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClicked(Car car, int position) {
+                Intent intent = new Intent(MainActivity.this, AddEditCarActivity.class);
+                intent.putExtra(AddEditCarActivity.EXTRA_ID, car.getId());
+                intent.putExtra(AddEditCarActivity.EXTRA_BRAND, car.getBrand());
+                intent.putExtra(AddEditCarActivity.EXTRA_MODEL, car.getModel());
+                intent.putExtra(AddEditCarActivity.EXTRA_POSITION, position);
+                startActivityForResult(intent, EDIT_CAR_ACTIVITY_REQUEST_CODE);
+                return true;
+            }
+        });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mCarViewModel.saveAllCars();
     }
 }

@@ -18,7 +18,6 @@ import java.util.concurrent.Future;
 class CarRepository {
 
     private final CarDao mCarDao;
-    private final List<Car> mAllCars;
 
     // Note that in order to unit test the WordRepository, you have to remove the Application
     // dependency. This adds complexity and much more code, and this sample is not about testing.
@@ -27,16 +26,25 @@ class CarRepository {
     CarRepository(Application application) {
         CarRoomDatabase db = CarRoomDatabase.getDatabase(application);
         mCarDao = db.carDao();
-        mAllCars = mCarDao.getAlphabetizedByBrands();
     }
 
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
-    public List<Car> getAllCars() {
-        return mAllCars;
+    public List<Car> getAllCars() throws ExecutionException, InterruptedException {
+        Future<List<Car>> list = CarRoomDatabase.databaseWriteExecutor.submit(new Callable<List<Car>>() {
+            @Override
+            public List<Car> call() {
+                return mCarDao.getAlphabetizedByBrands();
+            }
+        });
+        return list.get();
     }
 
-    public List<Car> getFilteredCars(String str) { return mCarDao.getFilteredCars(str); }
+    public void saveAllCars(List<Car> cars) {
+//        CarRoomDatabase.databaseWriteExecutor.execute(() -> {
+//            mCarDao.saveAllCars(cars);
+//        });
+    }
 
     // You must call this on a non-UI thread or your app will throw an exception. Room ensures
     // that you're not doing any long running operations on the main thread, blocking the UI.
@@ -60,25 +68,5 @@ class CarRepository {
 
     public void deleteAllCars() {
         CarRoomDatabase.databaseWriteExecutor.execute(mCarDao::deleteAll);
-    }
-
-    public void deleteAllCheckedCars() {
-        CarRoomDatabase.databaseWriteExecutor.execute(() -> {
-            mCarDao.deleteAllChecked(true);
-        });
-    }
-
-    List<Car> getSelectedCars() throws ExecutionException, InterruptedException {
-        Future<List<Car>> list = CarRoomDatabase.databaseWriteExecutor.submit(new Callable<List<Car>>() {
-            @Override
-            public List<Car> call() {
-                return mCarDao.getSelected(true);
-            }
-        });
-        return list.get();
-    }
-
-    Car getByBrandAndModel() {
-        return mCarDao.getByBrandAndModel("VW", "Polo");
     }
 }

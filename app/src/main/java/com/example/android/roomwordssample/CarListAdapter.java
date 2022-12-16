@@ -27,34 +27,64 @@ import java.util.Locale;
 
 
 public class CarListAdapter extends RecyclerView.Adapter<CarListAdapter.CarViewHolder> {
-
+    private View view;
     private Context context;
-    private ArrayList<Car> cars;
-    private ArrayList<Car> checked_cars;
-
+    private final ArrayList<Car> cars;
+    private final ArrayList<Car> checked_cars;
+    private OnItemLongClickListener listener;
+    private final ArrayList<Integer> checked_positions;
     public CarListAdapter(Context c, ArrayList<Car> cars) {
         this.context = c;
         this.cars = cars;
+        checked_cars = new ArrayList<>();
+        checked_positions = new ArrayList<>();
     }
 
+    public ArrayList<Car> getChecked_cars() {
+        return checked_cars;
+    }
+
+    public ArrayList<Integer> getChecked_positions() {
+        return checked_positions;
+    }
+
+    public View getView() {
+        return view;
+    }
     @NonNull
     @Override
     public CarListAdapter.CarViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_item, parent, false);
-        return new CarViewHolder(itemView);
+        view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_item, parent, false);
+        return new CarViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(CarListAdapter.CarViewHolder holder, int position) {
-        Car car = cars.get(position);
-        holder.brandItemView.setText(car.getBrand());
-        holder.modelItemView.setText(car.getModel());
-        holder.checkBox.setChecked(car.getIsSelected());
+    public void onBindViewHolder(@NonNull CarListAdapter.CarViewHolder holder, int position) {
+        if (cars != null && cars.size() > 0) {
+            Car car = cars.get(position);
+            holder.brandItemView.setText(car.getBrand());
+            holder.modelItemView.setText(car.getModel());
+            holder.checkBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (holder.checkBox.isChecked()) {
+                        checked_cars.add(car);
+                        checked_positions.add(holder.getAdapterPosition());
+                    }
+                    else {
+                        checked_cars.remove(car);
+                        checked_positions.remove(holder.getAdapterPosition());
+                    }
+                }
+            });
+        }
     }
 
     @Override
     public int getItemCount() {
-        return cars.size();
+        if (cars != null)
+            return cars.size();
+        return 0;
     }
 
     class CarViewHolder extends RecyclerView.ViewHolder{
@@ -67,16 +97,22 @@ public class CarListAdapter extends RecyclerView.Adapter<CarListAdapter.CarViewH
             brandItemView = itemView.findViewById(R.id.brandTextView);
             modelItemView = itemView.findViewById(R.id.modelTextView);
             checkBox = itemView.findViewById(R.id.checkbox_check);
-
-            checkBox.setOnClickListener(new View.OnClickListener() {
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
-                public void onClick(View v) {
-                    boolean isChecked = ((CheckBox) v).isChecked();
-
-                    cars.get(getAdapterPosition()).setSelected(isChecked);
-                    notifyItemChanged(getAdapterPosition());
+                public boolean onLongClick(View v) {
+                    int position = getAdapterPosition();
+                    if (listener != null && position != RecyclerView.NO_POSITION)
+                        listener.onItemLongClicked(cars.get(position), position);
+                    return true;
                 }
             });
         }
+    }
+    public interface OnItemLongClickListener {
+        boolean onItemLongClicked(Car car, int position);
+    }
+
+    public void setOnItemLongClickListener(OnItemLongClickListener listener) {
+        this.listener = listener;
     }
 }

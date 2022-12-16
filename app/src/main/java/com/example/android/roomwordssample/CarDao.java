@@ -28,8 +28,8 @@ public interface CarDao {
     @Query("SELECT * FROM car_table ORDER BY brand ASC")
     List<Car> getAlphabetizedByBrands();
 
-    @Query("SELECT * FROM car_table WHERE brand LIKE '%' || :query || '%' OR model LIKE '%' || :query || '%' ORDER BY brand ASC")
-    List<Car> getFilteredCars(String query);
+    @Insert
+    void saveAllCars(List<Car> cars);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(Car car);
@@ -42,13 +42,4 @@ public interface CarDao {
 
     @Delete
     void delete(Car car);
-
-    @Query("SELECT * FROM car_table WHERE brand = :brand AND model = :model")
-    Car getByBrandAndModel(String brand, String model);
-
-    @Query("SELECT * FROM car_table WHERE isSelected = :select")
-    List<Car> getSelected(Boolean select);
-
-    @Query("DELETE FROM car_table WHERE isSelected = :selected")
-    void deleteAllChecked(Boolean selected);
 }

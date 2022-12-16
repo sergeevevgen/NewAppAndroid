@@ -29,13 +29,9 @@ public class Car {
     @ColumnInfo(name = "model")
     private String model;
 
-    @ColumnInfo(name = "isSelected")
-    private Boolean isSelected;
-
-    public Car(@NonNull String brand, String model, Boolean isSelected) {
+    public Car(@NonNull String brand, String model) {
         this.brand = brand;
         this.model = model;
-        this.isSelected = isSelected;
     }
 
     public void setId(long id) {
@@ -59,11 +55,4 @@ public class Car {
     }
 
     public void setModel(String model){ this.model = model; }
-
-    @NonNull
-    public Boolean getIsSelected() { return this.isSelected; }
-
-    public void setSelected(Boolean isSelected) {
-        this.isSelected = isSelected;
-    }
 }
