@@ -25,8 +25,8 @@ public interface CarDao {
     // Always holds/caches latest version of data. Notifies its active observers when the
     // data has changed. Since we are getting all the contents of the database,
     // we are notified whenever any of the database contents have changed.
-    @Query("SELECT * FROM car_table ORDER BY brand ASC")
-    List<Car> getAlphabetizedByBrands();
+    @Query("SELECT * FROM car_table")
+    List<Car> getAllCars();
 
     @Insert
     void saveAllCars(List<Car> cars);

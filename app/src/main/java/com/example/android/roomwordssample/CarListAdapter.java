@@ -29,7 +29,7 @@ import java.util.Locale;
 public class CarListAdapter extends RecyclerView.Adapter<CarListAdapter.CarViewHolder> {
     private View view;
     private Context context;
-    private final ArrayList<Car> cars;
+    private ArrayList<Car> cars;
     private final ArrayList<Car> checked_cars;
     private OnItemLongClickListener listener;
     private final ArrayList<Integer> checked_positions;
@@ -38,6 +38,11 @@ public class CarListAdapter extends RecyclerView.Adapter<CarListAdapter.CarViewH
         this.cars = cars;
         checked_cars = new ArrayList<>();
         checked_positions = new ArrayList<>();
+    }
+
+    public void filterList(ArrayList<Car> filterList) {
+        cars = filterList;
+        notifyDataSetChanged();
     }
 
     public ArrayList<Car> getChecked_cars() {

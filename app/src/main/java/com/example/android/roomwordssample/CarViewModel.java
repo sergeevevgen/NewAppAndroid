@@ -40,25 +40,57 @@ public class CarViewModel extends AndroidViewModel {
         CONSTANT_SOURCE = k;
     }
 
-    public ArrayList<Car> getAllCars() throws ExecutionException, InterruptedException {
+    public void getAllCars() throws ExecutionException, InterruptedException {
         if (CONSTANT_SOURCE == 0) {
             list_cars = (ArrayList<Car>) mRepository.getAllCars();
         }
         else {
-            Future<List<Car>> list = JSONHelper.jsoneWriteExecutor.submit(new Callable<List<Car>>() {
-                @Override
-                public List<Car> call() {
-                    return JSONHelper.importFromJSON(getApplication());
-                }
-            });
-            ArrayList<Car> tmp = (ArrayList<Car>)list.get();
-            if (tmp == null) {
+            list_cars = getAllCarsFromJSON();
+            if (list_cars == null)
                 list_cars = new ArrayList<>();
-            }
-            else
-                list_cars = tmp;
         }
-        return list_cars;
+    }
+
+    private ArrayList<Car> getAllCarsFromJSON() throws ExecutionException, InterruptedException {
+        Future<List<Car>> list = JSONHelper.jsoneWriteExecutor.submit(new Callable<List<Car>>() {
+            @Override
+            public List<Car> call() {
+                return JSONHelper.importFromJSON(getApplication());
+            }
+        });
+        return (ArrayList<Car>)list.get();
+    }
+
+    public void syncStores() throws ExecutionException, InterruptedException {
+        ArrayList<Car> cars_db = (ArrayList<Car>) mRepository.getAllCars();
+        ArrayList<Car> cars_json = (ArrayList<Car>) getAllCarsFromJSON();
+        if (cars_db == null || cars_json == null)
+            return;
+        ArrayList<Car> summary = new ArrayList<>(cars_db);
+        ArrayList<Car> cars_for_db = new ArrayList<>();
+
+        for (Car i : cars_json) {
+            boolean flag = false;
+            for (Car j : cars_db) {
+                if (i.getModel().equals(j.getModel()) && i.getBrand().equals(j.getBrand())) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag) {
+                cars_for_db.add(i);
+            }
+        }
+
+        saveDBManyCars(cars_for_db);
+        summary.addAll(cars_for_db);
+        JSONHelper.jsoneWriteExecutor.execute(() -> {
+            JSONHelper.exportToJSON(getApplication(), summary);
+        });
+        try {
+            Thread.sleep(300);
+        } catch (Exception ignored) {
+        }
     }
 
     public void saveAllCars() {
@@ -67,6 +99,10 @@ public class CarViewModel extends AndroidViewModel {
                 JSONHelper.exportToJSON(getApplication(), list_cars);
             });
         }
+    }
+
+    private void saveDBManyCars(List<Car> cars) {
+        mRepository.saveAllCars(cars);
     }
 
     public void saveAllCarsForSwap() {

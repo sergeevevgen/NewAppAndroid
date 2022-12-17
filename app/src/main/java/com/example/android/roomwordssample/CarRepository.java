@@ -34,16 +34,16 @@ class CarRepository {
         Future<List<Car>> list = CarRoomDatabase.databaseWriteExecutor.submit(new Callable<List<Car>>() {
             @Override
             public List<Car> call() {
-                return mCarDao.getAlphabetizedByBrands();
+                return mCarDao.getAllCars();
             }
         });
         return list.get();
     }
 
     public void saveAllCars(List<Car> cars) {
-//        CarRoomDatabase.databaseWriteExecutor.execute(() -> {
-//            mCarDao.saveAllCars(cars);
-//        });
+        CarRoomDatabase.databaseWriteExecutor.execute(() -> {
+            mCarDao.saveAllCars(cars);
+        });
     }
 
     // You must call this on a non-UI thread or your app will throw an exception. Room ensures

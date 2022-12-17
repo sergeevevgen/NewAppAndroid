@@ -1,5 +1,6 @@
 package com.example.android.roomwordssample;
 
+import android.appwidget.AppWidgetManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -19,6 +20,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 
@@ -28,7 +30,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public static final int EDIT_CAR_ACTIVITY_REQUEST_CODE = 2;
     private CarListAdapter adapter;
     private CarViewModel mCarViewModel;
-    RecyclerView recyclerView;
+    private RecyclerView recyclerView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +41,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         // Get a new or existing ViewModel from the ViewModelProvider.
         mCarViewModel = new ViewModelProvider(this).get(CarViewModel.class);
+        try {
+            mCarViewModel.syncStores();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
         try {
             getData();
         } catch (ExecutionException | InterruptedException e) {
@@ -179,16 +187,20 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     @Override
     public boolean onQueryTextChange(String s) {
-//        if (s != null) {
-//            searchIntoModel(s);
-//        }
+        searchIntoModel(s);
         return true;
     }
 
-//    private void searchIntoModel(String s) {
-//        String str = '%' + s + '%';
-//        mCarViewModel.getFilteredCars(str).observe(this, adapter::submitList);
-//    }
+    private void searchIntoModel(String s) {
+        ArrayList<Car> car_list = new ArrayList<>();
+
+        for(Car item : mCarViewModel.list_cars) {
+            if (item.getBrand().toLowerCase().contains(s.toLowerCase()) || item.getModel().toLowerCase().contains(s.toLowerCase())) {
+                car_list.add(item);
+            }
+        }
+        adapter.filterList(car_list);
+    }
 
     private void getData() throws ExecutionException, InterruptedException {
         mCarViewModel.getAllCars();
@@ -228,20 +240,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private void setRecyclerView() {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new CarListAdapter(this, mCarViewModel.list_cars);
-        recyclerView.setAdapter(adapter);
-        adapter.setOnItemLongClickListener(new CarListAdapter.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClicked(Car car, int position) {
-                Intent intent = new Intent(MainActivity.this, AddEditCarActivity.class);
-                intent.putExtra(AddEditCarActivity.EXTRA_ID, car.getId());
-                intent.putExtra(AddEditCarActivity.EXTRA_BRAND, car.getBrand());
-                intent.putExtra(AddEditCarActivity.EXTRA_MODEL, car.getModel());
-                intent.putExtra(AddEditCarActivity.EXTRA_POSITION, position);
-                startActivityForResult(intent, EDIT_CAR_ACTIVITY_REQUEST_CODE);
-                return true;
-            }
-        });
+        restore();
     }
 
     @Override
