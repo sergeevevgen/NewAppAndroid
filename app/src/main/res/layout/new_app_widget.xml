@@ -1,7 +1,8 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/Widget.NewAppAndroid.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:theme="@style/AppTheme.AppWidgetContainer">
 
     <TextView
@@ -9,11 +10,15 @@
         style="@style/Widget.NewAppAndroid.AppWidget.InnerView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_margin="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="#F80909"
         android:contentDescription="@string/appwidget_text"
-        android:text="@string/appwidget_text"
+        android:minWidth="30dp"
+        android:minHeight="15dp"
+        android:text=""
         android:textSize="24sp"
         android:textStyle="bold|italic" />
-</RelativeLayout>
+</LinearLayout>
