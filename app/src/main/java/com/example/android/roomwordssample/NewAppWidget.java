@@ -14,6 +14,7 @@ import android.widget.Toast;
  */
 public class NewAppWidget extends AppWidgetProvider {
     public static String ACTION_WIDGET_RECEIVER = "android.appwidget.action.APPWIDGET_UPDATE";
+
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
         CharSequence widgetText = "Количество записей в БД: " + JSONHelper.getCount(context);
@@ -23,16 +24,6 @@ public class NewAppWidget extends AppWidgetProvider {
 
         views.setTextViewText(R.id.appwidget_text, widgetText);
 
-        Intent intent = new Intent(context, NewAppWidget.class);
-        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-
-        int[] ids = AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, NewAppWidget.class));
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, appWidgetId, intent, PendingIntent.FLAG_IMMUTABLE);
-        views.setPendingIntentTemplate(R.id.appwidget_text, pendingIntent);
-        context.sendBroadcast(intent);
-        // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
@@ -43,13 +34,28 @@ public class NewAppWidget extends AppWidgetProvider {
         }
     }
 
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        CharSequence widgetText = "Записей в БД: "+ JSONHelper.getCount(context);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.new_app_widget);
+        views.setTextViewText(R.id.appwidget_text, widgetText);
+
+        int[] ids = AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, NewAppWidget.class));
+        onUpdate(context, AppWidgetManager.getInstance(context), ids);
+        AppWidgetManager.getInstance(context.getApplicationContext()).notifyAppWidgetViewDataChanged(ids,R.id.appwidget_text);
+    }
+
     @Override
     public void onEnabled(Context context) {
+        super.onEnabled(context);
         // Enter relevant functionality for when the first widget is created
     }
 
     @Override
     public void onDisabled(Context context) {
+        super.onDisabled(context);
         // Enter relevant functionality for when the last widget is disabled
     }
 }

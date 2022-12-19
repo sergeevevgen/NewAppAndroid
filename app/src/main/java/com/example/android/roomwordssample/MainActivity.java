@@ -247,5 +247,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     protected void onStop() {
         super.onStop();
         mCarViewModel.saveAllCars();
+        Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        intent.putExtra("mess","mess");
+        sendBroadcast(intent);
     }
 }
